@@ -14,19 +14,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.play.harrypottercompose.data.Result
 import com.play.harrypottercompose.data.entites.Character
 
 
 @Composable
-fun HomeScreen(modifier: Modifier, vieModel: HomeViewModel = viewModel()) {
+fun HomeScreen(
+    onNavigateToDetailScreen: (Character) -> Unit = {},
+    vieModel: HomeViewModel
+) {
     val harryPotterCharacters = vieModel.result.observeAsState()
     when (harryPotterCharacters.value) {
         is Result.Success -> {
             val data = (harryPotterCharacters.value as Result.Success<List<Character>>).data!!
-            CharacterList(modifier = modifier, characters = data)
+            CharacterList(characters = data, onItemClick = onNavigateToDetailScreen)
         }
     }
 }
@@ -34,7 +36,7 @@ fun HomeScreen(modifier: Modifier, vieModel: HomeViewModel = viewModel()) {
 @Composable
 fun CharacterList(
     characters: List<Character>,
-    modifier: Modifier
+    onItemClick: (Character) -> Unit
 ) {
     var showDialog by remember {
         mutableStateOf(false)
@@ -48,9 +50,11 @@ fun CharacterList(
             showDialog = false
         }
     }
-    LazyColumn(modifier = modifier) {
+    LazyColumn {
         items(items = characters) { character ->
-            CharacterCard(item = character) {
+            CharacterCard(item = character,
+                onItemClick = { onItemClick(it) }
+            ) {
                 selectedItem = it
                 showDialog = true
             }
@@ -59,12 +63,16 @@ fun CharacterList(
 }
 
 @Composable
-fun CharacterCard(item: Character, onClick: (Character) -> Unit) {
+fun CharacterCard(
+    item: Character,
+    onItemClick: (Character) -> Unit,
+    onWandClick: (Character) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxSize()
             .padding(5.dp)
-            .clickable { onClick(item) },
+            .clickable { onItemClick(item) },
         elevation = CardDefaults.cardElevation(5.dp)
     ) {
         Row(
@@ -92,8 +100,8 @@ fun CharacterCard(item: Character, onClick: (Character) -> Unit) {
 
             }
             Spacer(Modifier.weight(1f))
-            Button(onClick = { onClick(item) }) {
-                Text(text = "Wand...")
+            Button(onClick = { onWandClick(item) }) {
+                Text(text = "Wand")
                 //Icon(painter = , contentDescription = )
             }
         }
@@ -112,7 +120,7 @@ fun showWand(character: Character, onClose: () -> Unit) {
         },
         title = { Text(text = character.name) },
         text = {
-            Text(text ="${character.wand.wood}-${character.wand.length}-${character.wand.core}")
+            Text(text = "${character.wand.wood}-${character.wand.length}-${character.wand.core}")
         }
     )
 }
