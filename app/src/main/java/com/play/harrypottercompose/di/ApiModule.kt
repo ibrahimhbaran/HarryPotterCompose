@@ -20,6 +20,6 @@ object ApiModule {
         .build()
 
     @Provides
-    fun provideCharacterService(retrofit: Retrofit) = retrofit.create(CharacterService::class.java)
+    fun provideCharacterService(retrofit: Retrofit): CharacterService = retrofit.create(CharacterService::class.java)
 
 }
